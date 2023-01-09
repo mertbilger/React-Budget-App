@@ -1,70 +1,171 @@
-# Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# React ile Bütçe Takip ve Planlama Uygulaması
 
-## Available Scripts
+Bütçe takibi için tasarladığım uygulamada kullandığım önemli ve size yararlı olacak bilgilere değineceğim.
 
-In the project directory, you can run:
 
-### `npm start`
+## uuidv4
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Öncelikle değinmek istediğim kritik noktalardan biri uuidv4 olacak.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Örneğin biz bir market gideri ekledik ve gider kısmına eklendi ve id'side 1 olsun.Farklı bir günde de market eklemek istediğimizde `uuidv4` burda devreye giriyor eğer `uuidv4` kullanmassak market giderleri birleşir çünkü ikisinde id'si 1 olacaktır ve toplam market harcamamızı görürüz.Buda karışıklığa yol açar ve bütçe takibi konusunda pek verimli olduğu söylenemez.Kısacası `uudiv4` bize benzersiz id'ler oluşturuyor ve bu sayede karışıklığın önüne geçmiş oluyoruz.
+```javascript
+const masraf = {
+            id: uuidv4(),
+            name: name,
+            tutar: parseInt(tutar),
+        }
 
-### `npm test`
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Görüldüğü gibi masraf eklerken giden id ismi `uudiv4` olarak tanımlıyoruz.
 
-### `npm run build`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Tabiki uudiv4 kullanmak için import işlemi gerekli.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```javascript
+import { v4 as uuidv4 } from 'uuid';
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Grafikler
 
-### `npm run eject`
+### **PieChart**
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Öncelikle grafikleri https://recharts.org/en-US/examples sitesinden alabilirsiniz ama benim yapmış olduğum değişiklikler bulunmaktadır.
+Bunun temelinde değişiklerin tutulduğu datamız vardır.
+- Data değişkeni için yaptığım değişikler aşşağıdaki gibidir.
+```javascript
+const Chartss = () => {
+    const { butce, harcamalar } = useContext(AppContext);
+    const totalExpenses = harcamalar.reduce((total, item) => {
+        return (total += item.tutar)
+    }, 0)
+    const Ktutar = butce - totalExpenses;
+    const data = [
+        { name: "Bütçe", value: Ktutar },
+    ];
+```
+Bu alanda girilen değerlerin toplamı ve kalan tutar için işlemler var.
+`const data` alanında ise `value` kısmını yukarıda ki `Ktutar`kısmını veriyoruz.Çünkü ilk başta grafiğimiz
+bizim bütçemizi göstermeli.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Daha sonra Data güncellenmesi var;
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```javascript
+ const newData = [...data, { name: '', value: totalExpenses }]
+```
 
-## Learn More
+Yeni data değeri oluşturuyoruz ve value değerine totalExpenses değerini veriyoruz.Bunun nedeni girilen harcama tutarlarının toplamlarını göndermemiz olacaktır.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Daha `PieChart` divi içerisindeki data alanının oluşturduğumuz data ile değiştiriyoruz.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```javascript
+ data={newData}
+```
+### **LineChart**
 
-### Code Splitting
+```javascript
+ const { butce, harcamalar } = useContext(AppContext);
+    const totalExpenses = harcamalar.reduce((total, item) => {
+        return (total += item.tutar)
+    }, 0)
+    const alertType = totalExpenses > butce ? 'red' : 'green';
+    const newData = [...data, { name: 'Şu Ana Kadar', Harcanan: totalExpenses }]
+```
+Yine benzer işlemleri yapıyoruz.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+`const alertType = totalExpenses > butce ? 'red' : 'green';`
 
-### Analyzing the Bundle Size
+Alanında eğer toplam harcamalar bütçeyi geçerse grafik çizgisi kırmızı renge dönüşmesi.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Data değerimiz ve grafik çizgisini güncelliyoruz.
 
-### Making a Progressive Web App
+```javascript
+ data={newData}
+ stroke={alertType}
+```
+Burada ufak bir detay daha var path alanlarının değişimi.Değiştirmemizin nedeni üzülen suratın
+toplam harcamalar bütçeyi geçince gelmesi gerekli olduğu için.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## Bütçe güncelleme
 
-### Advanced Configuration
+Bütçe değiştirme butonunu oluşturmak için `butcebutton.js` dosyasını kullanıyoruz.
+```
+import React from 'react';
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+              const ViewBudget = (props) => {
+              return (
+              <>
+              <span>Bütçe: {props.butce} TL</span>
+              <button type='button' class='btn btn-primary' onClick={props.handleEditClick}>
+                    Değiştir
+              </button>
+                </>
+               );
+             };
 
-### Deployment
+                export default ViewBudget;
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+Burda girdiğimiz bütçe değerini kullanıcıdan istiyoruz ve props sayesinde **`AppContext`** 'te kullanabiliyoruz. 
+(Bütçe değerini güncelleme işlemi)
+  
+```
+ import React, { useState } from 'react';
+        
+                              const EditBudget = (props) => {
+                              const [value, setValue] = useState(props.butce);
+                              return (
+                              <>
+                              <input
+                              required='required'
+                              type='number'
+                              class='form-control mr-3'
+                              id='name'
+                              value={value}
+                              onChange={(event) => setValue(event.target.value)}
+                              />
+                              <button
+                              type='button'
+                              class='btn btn-primary'
+                              onClick={() => props.handleSaveClick(value)}
+                              >
+                              Save
+                              </button>
+                              </>
+                            );
+                            ;
+        
+                           export default EditBudget;
+```
+Daha sonra useState kullanarak değerlerimizi tanımlıyoruz.useState false değeri almasının 
+sebebi bizdeğiştirdiğimizde uygulanacak olması.`SET_BUDGET` değerini **`AppContext`**'te tanımlayacağız.
+Eğer değişiklik yapılmış ise EditBudget ve ViewBudget alanları güncellenecek.
+```
+const AppReducer = (state, action) => {
+                        switch (action.type) {
+                            case 'SET_BUDGET':
+                            return {
+                                ...state,
+                                butce: action.payload,
+                                }
+                            }
+                        }
+```
 
-### `npm run build` fails to minify
+Girilen harcama ekranında bulunan çarpı işaretine (TiDelete) tıklayınca `Deleteitem` 
+fonksiyonumuz çalışacak.**`HARCAMA_SİL`** fonksiyonu ise girilen değerin id sini `AppContex`e 
+göderilip orda silme işlemine tabi tutulacak.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```
+case 'HARCAMA_SİL':
+                        return {
+                            ...state,
+                            harcamalar: state.harcamalar.filter(
+                                (harcamalar) => harcamalar.id !== action.payload
+                            ),
+                         }
+                       }
+                     } 
+```
